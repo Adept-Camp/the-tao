@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>The TAO</title>
+  </head>
+  <body>
+    <pre>
+
+THE TRULY AUTONOMOUS ORGANIZATION
+=================================
+
+"The TAO" is a foundational framework for building DAOs, itself built using the
+dappsys framework. It is not monolithic: it's up to you to either deploy your
+own instance and grow it into something noteworthy, or to find a way to join an
+existing instance.
+
+Each instance has its own tokens, aims, and membership requirements. Each
+instance's tokens may be exchanged via any exchange or contract with ERC20 token
+support. Each instance is autonomous.
+
+Starting a "The TAO" instance gets you:
+
+* The ability to issue ERC20 tokens.
+* The ability to add and remove members.
+* The ability to make and vote on proposals.
+* The ability to add-on and expand in any direction.
+
+
+STRUCTURE
+=========
+
+Within both dappsys and "The TAO", sensitive functions are protected by an
+`auth` modifier. Each "The TAO" instance has a single DSBasicAuthority instance
+called the "root authority." Functions guarded by an `auth` modifier in "The
+TAO" instances can only be called by contracts and accounts that have been given
+permission to do so via the `setCanCall` function on the root authority.
+
+The `setCanCall` function takes first the address which will be calling the
+protected function, the address of the contract with the protected function, the
+4-byte signature of the protected function, and a boolean indicating whether to
+allow or disallow calling the function. By default, protected functions cannot
+be called. If a contract or address calls a protected function which it does not
+have permission to call, then the protected function throws.
+
+The DSBasicAuthority is itself governed by the dappsys authority system.
+Contracts using the dappsys authority system can either be in "authority" mode,
+in which case protected functions work as discussed in the above paragraph, or
+in "owner" mode, in which case the contract's `_authority` address (and only its
+`_authority` address) may call any of the contract's protected functions.
+
+The root authority's authority is a DSEasyMultisig instance, which provides
+n-of-m voting on proposals. The root authority itself is in "owner" mode, so the
+DSEasyMultisig instance may call any function on the root authority. Proposals
+consist of transactions which will be sent by the multisig to the given target
+if n-of-m members confirm and then trigger it within the voting window set when
+the multisig was deployed.
+
+Every component in "The TAO", except for the multisig, is governed by the root
+authority via the dappsys authority system.
+
+The token system consists of a DSTokenFrontend instance which implements the
+ERC20 interface and acts as a thin wrapper around a DSTokenController instance.
+The DSTokenController instance has a DSBalanceDB instance which keeps track of
+each address' token balance and a DSApprovalDB instance which keeps track of
+allowances between addresses. This structure allows for easy changing of token
+logic in the event a bug is discovered without any risk of losing balances or
+allowances.
+
+For token issuance, a DSTokenSupplyManager instance is also provided. New tokens
+may be issued to a caller using the `demand` function. This function may be used
+by contracts in conjunction with proposals granting such contracts the necessary
+permissions to issue pre-determined numbers of tokens to pre-determined
+addresses in a trustless manner. More concretely, one may write a contract which
+calls `demand` to grant itself some number of tokens and then send the tokens on
+to other addresses and then self-destruct or otherwise lock itself out of
+executing again. The multisig holders at that point may review the deployed
+contract's code and opt to grant it the necessary permissions to call `demand`
+on the supply manager. At that point the contract may be executed and the
+beneficiaries will receive their requested tokens.
+
+An ad-hoc ASCII art diagram of the structure described above:
+
+                        ------------------
+                       |  DSEasyMultisig  |
+                        ------------------
+                                |
+                           (owner of)
+                                |
+                        ------------------
+                       | DSBasicAuthority |
+                        ------------------
+                                |
+     ---------------------(authority of)
+    |                     /  |  |  |  \
+    |   -----------------    |  |  |   \
+    |  | DSTokenFrontend |   |  |  |    \
+    |   -----------------    |  |  |     \
+    |           |            |  |  |      \
+    |        (wraps)         |  |  |       \
+    |           |            |  |  |        \
+    |      -------------------  |  |    ----------------------
+    |     | DSTokenController | |  |   | DSTokenSupplyManager |
+    |      -------------------  |  |    ----------------------
+    |         |          |      |  |   /
+    |       (has)      (has)    |  | (has)
+    |         |          |      |  | /
+  --------------       -------------
+ | DSApprovalDB |     | DSBalanceDB |
+  --------------       -------------
+
+
+SOURCE CODE
+===========
+
+The source code can be found at <a href="https://github.com/ryepdx/the-tao">https://github.com/ryepdx/the-tao</a>.
+
+
+DEPLOYMENT
+==========
+
+In order to help create new instances of "The TAO", there is an instance of a
+contract called TheTAOFactory which can be used to create and set up instances
+of "The TAO". A simple deployment with a 2-of-3 multisig governance contract
+and a 72 hour voting window can be created by calling `createBasicInstance(2, 3,
+72*60*60)` on the factory contract. A deployment with the calling address as the
+owner of the root authority can be created by calling `createOwnedInstance()`. A
+multisig contract with the aforementioned parameters can later be installed on
+an owned root authority by first calling `updateAuthority(&lt;factory address&gt;, 0)`
+on the root authority to make it owned by the factory and then calling
+`setupMultisig(&lt;root authority address&gt;, 2, 3, 72*60*60)` on the factory.
+
+TheTAOFactory address:
+0x...
+
+TheTAOFactory ABI:
+[]
+
+
+CONTRACT LISTING
+================
+
+* <a href="">DSEasyMultisig</a>
+* <a href="">DSBasicAuthority</a>
+* <a href="">DSTokenFrontend</a>
+* <a href="">DSTokenController</a>
+* <a href="">DSApprovalDB</a>
+* <a href="">DSBalanceDB</a>
+* <a href="">DSTokenSupplyManager</a>
+
+    </pre>
+  </body>
+</html>
