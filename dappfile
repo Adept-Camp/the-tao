@@ -1,0 +1,9 @@
+name: the-tao
+version: 0.0.1
+tags: ["dao","tao","the tao", "thetao"]
+layout:
+  sol_sources: contracts
+  build_dir: build
+dependencies:
+  dappsys: 0.3.2
+ignore: []
