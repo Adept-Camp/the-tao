@@ -1,4 +1,5 @@
 import 'dappsys/factory/factory.sol';
+import 'dappsys/token/supply_manager.sol';
 
 contract TheTAOFactory is DSAuthModesEnum {
     DSFactory _factory;
@@ -7,26 +8,31 @@ contract TheTAOFactory is DSAuthModesEnum {
         _factory = factory;
     }
 
-    function createBasicInstance(uint n, uint m, uint exp)
-             returns (address, address, address)
-    {
-        DSBasicAuthority authority = _factory.buildDSBasicAuthority();
-        DSTokenFrontend token = _factory.installDSTokenBasicSystem(authority);
-        DSEasyMultisig multisig = _factory.buildDSEasyMultisig(n, m, exp);
-        token.updateAuthority(authority, DSAuthModes.Authority);
-        authority.updateAuthority(multisig, DSAuthModes.Owner);
-
-        return (authority, token, multisig);
+    function createAuthority() returns (DSBasicAuthority) {
+        return _factory.buildDSBasicAuthority();
     }
 
-    function createOwnedInstance(uint n, uint m, uint exp)
-             returns (address, address)
+    function createToken(DSBasicAuthority authority)
+             returns (DSTokenFrontend, DSTokenSupplyManager)
     {
-        DSBasicAuthority authority = _factory.buildDSBasicAuthority();
-        DSTokenFrontend token = _factory.installDSTokenBasicSystem(authority);
-        token.updateAuthority(authority, DSAuthModes.Authority);
+        authority.updateAuthority(_factory, DSAuthModes.Owner);
 
-        return (authority, token);
+        DSTokenFrontend token = _factory.installDSTokenBasicSystem(authority);
+        DSBalanceDB db = token.getController().getBalanceDB();
+        DSTokenSupplyManager manager = new DSTokenSupplyManager(db);
+        authority.setCanCall(
+          manager, db, bytes4(sha3('addBalance(address,uint256)')), true);
+        authority.setCanCall(
+          manager, db, bytes4(sha3('subBalance(address,uint256)')), true);
+        manager.updateAuthority(authority, DSAuthModes.Authority);
+
+        authority.updateAuthority(this, DSAuthModes.Owner);
+
+        return (token, manager);
+    }
+
+    function giveOwnership(DSBasicAuthority authority) {
+        authority.updateAuthority(msg.sender, DSAuthModes.Owner);
     }
 
     function setupMultisig(DSBasicAuthority authority, uint n, uint m, uint exp)
