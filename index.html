@@ -108,8 +108,7 @@ An ad-hoc ASCII art diagram of the structure described above:
 SOURCE CODE
 ===========
 
-The source code can be found at
-<a href="https://github.com/ryepdx/the-tao">https://github.com/ryepdx/the-tao</a>.
+The source code can be found at <a href="https://github.com/ryepdx/the-tao">https://github.com/ryepdx/the-tao</a>.
 
 
 DEPLOYMENT
@@ -117,14 +116,65 @@ DEPLOYMENT
 
 In order to help create new instances of "The TAO", there is an instance of a
 contract called TheTAOFactory which can be used to create and set up instances
-of "The TAO". A simple deployment with a 2-of-3 multisig governance contract
-and a 72 hour voting window can be created by calling `createBasicInstance(2, 3,
-72*60*60)` on the factory contract. A deployment with the calling address as the
-owner of the root authority can be created by calling `createOwnedInstance()`. A
-multisig contract with the aforementioned parameters can later be installed on
-an owned root authority by first calling `updateAuthority(&lt;factory address&gt;, 0)`
-on the root authority to make it owned by the factory and then calling
-`setupMultisig(&lt;root authority address&gt;, 2, 3, 72*60*60)` on the factory.
+of "The TAO". Setting up an instance of "TheTAO" requires a few transactions to
+this factory instance due to block gas limits.
+
+First, the `createAuthority` function must be called. This creates and returns
+the address of your "The TAO" instance's root authority. It takes no parameters.
+
+```
+factory.createAuthority()
+```
+
+The authority returned is owned by the factory contract. As such, you may choose
+to immediately set up your token contracts by passing the authority to the
+`createToken` function. It takes the authority's address as a parameter and
+returns a pair of addresses: the token frontend followed by the token supply
+manager.
+
+```
+factory.createToken(root_authority)
+```
+
+The `createToken` contract will only succeed if the factory is set as the owner
+of the root authority. When it returns the root authority, it maintains
+ownership. If you want to take ownership of the root authority directly from the
+factory, you may pass it to the `giveOwnership` function. You'll need to use the
+`updateAuthority` function on the root authority to give ownership back to the
+factory if you later choose to use `createToken` or `setupMultisig`.
+
+Once the token is set up and ownership of the root authority has been returned
+(if you called `giveOwnership`) to the factory, you may set up a simple multisig
+contract to govern your instance of "The TAO".
+
+```
+factory.setupMultisig(root_authority, 2, 3, 72*60*60)
+```
+
+The example above creates a 2-of-3 DSEasyMultisig instance with a 72 hour
+voting window on proposals. This is not the sort of governance structure most
+people have in mind when they think of a DAO, but it can be a good compromise
+between centralization and decentralization in a DAO's early days. It ensures
+one person cannot unilaterally make decisions without introducing too much
+friction around taking the sort of quick action that may be needed in a DAO's
+early days. If a dictatorship suits you better, of course, you may choose to
+just call `giveOwnership(root_authority)` to claim personal ownership instead.
+More imaginative forms of governance may be instituted by giving ownership of
+the root authority to other kinds of proxy contracts.
+
+The `setupMultisig` function returns the address of the new DSEasyMultisig
+contract and gives ownership of the root authority to the new multisig. Once
+created, it must be populated with its members by calling `addMember`. New
+members may not be removed once added, and new members may not be added after
+all the positions have been filled. To remove members or otherwise change
+membership, the multisig may give ownership of the root authority to a contract
+which passes ownership on to the factory, calls `setupMultisig`, calls
+`addMember` for each of the members of the new multisig, and sets the new
+multisig as the owner of the root authority.
+
+
+FACTORY INSTANCE ADDRESS AND ABI
+================================
 
 TheTAOFactory address:
 0x...
