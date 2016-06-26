@@ -122,9 +122,7 @@ this factory instance due to block gas limits.
 First, the `createAuthority` function must be called. This creates and returns
 the address of your "The TAO" instance's root authority. It takes no parameters.
 
-```
-factory.createAuthority()
-```
+    factory.createAuthority()
 
 The authority returned is owned by the factory contract. As such, you may choose
 to immediately set up your token contracts by passing the authority to the
@@ -132,9 +130,7 @@ to immediately set up your token contracts by passing the authority to the
 returns a pair of addresses: the token frontend followed by the token supply
 manager.
 
-```
-factory.createToken(root_authority)
-```
+    factory.createToken(root_authority)
 
 The `createToken` contract will only succeed if the factory is set as the owner
 of the root authority. When it returns the root authority, it maintains
@@ -147,9 +143,7 @@ Once the token is set up and ownership of the root authority has been returned
 (if you called `giveOwnership`) to the factory, you may set up a simple multisig
 contract to govern your instance of "The TAO".
 
-```
-factory.setupMultisig(root_authority, 2, 3, 72*60*60)
-```
+    factory.setupMultisig(root_authority, 2, 3, 72*60*60)
 
 The example above creates a 2-of-3 DSEasyMultisig instance with a 72 hour
 voting window on proposals. This is not the sort of governance structure most
@@ -243,14 +237,14 @@ together by a common profit motive, "The TAO" is held together only by the
 theoretical interoperability of any components built for it and may not, in
 fact, be an organization at all.
 
-"""
-The Tao that can be spoken is not the eternal Tao
-The name that can be named is not the eternal name
-The nameless is the origin of Heaven and Earth
-The named is the mother of myriad things
-Thus, constantly without desire, one observes its essence
-Constantly with desire, one observes its manifestations
-These two emerge together but differ in name
-The unity is said to be the mystery
-Mystery of mysteries, the door to all wonders
-"""
+    The Tao that can be spoken is not the eternal Tao
+    The name that can be named is not the eternal name
+    The nameless is the origin of Heaven and Earth
+    The named is the mother of myriad things
+    Thus, constantly without desire, one observes its essence
+    Constantly with desire, one observes its manifestations
+    These two emerge together but differ in name
+    The unity is said to be the mystery
+    Mystery of mysteries, the door to all wonders
+
+    - The Tao Te Ching, Chapter 1
