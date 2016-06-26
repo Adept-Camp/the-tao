@@ -1,0 +1,3 @@
+var dsfactory1 = '0x93779e2cb8448a24bede8da55f1dffbadbc585a9'
+var factory = new TheTAOFactory(dsfactory1)
+export factory
