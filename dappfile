@@ -1,9 +1,24 @@
 name: the-tao
 version: 0.0.1
-tags: ["dao","tao","the tao", "thetao"]
+tags:
+  - dao
+  - tao
+  - the tao
+  - thetao
 layout:
   sol_sources: contracts
   build_dir: build
 dependencies:
   dappsys: 0.3.2
 ignore: []
+environments:
+  morden:
+    objects:
+      factory:
+        class: TheTAOFactory
+        address: '0x8a57ef2c492e4fa698fd8f85490a697b5d9d97c5'
+  live:
+    objects:
+      factory:
+        class: TheTAOFactory
+        address: '0x594c55db3e6df7b66b35974cc3ccdeef27318be2'
